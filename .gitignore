@@ -1,0 +1,36 @@
+# Python virtual environments & bytecode (keeps repo light)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Streamlit local secrets
+.streamlit/secrets.toml
+
+# macOS system clutter
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test & coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local test scratch images (won't commit your temporary test photos)
+scratch/
+*.png
+*.jpg
+!notebooks/*.png
+!notebooks/*.jpg

@@ -1,0 +1,6 @@
+# config.yaml
+strength: 0.02           # ℓ∞ budget for PGD (max ≈ 0.05)
+iterations: 10           # PGD steps
+mode: pgd                # pgd | diffusion
+image_size: 512          # Target size (Stable Diffusion works best at 512)
+cpu_fallback_iters: 5    # Reduced iterations when only CPU is available
