@@ -95,13 +95,14 @@ with tab_protect:
 
             with st.spinner("Immunizing your photo with invisible defense patterns…"):
                 try:
-                    resp = requests.post(f"{API_URL}/protect", files=files, data=data)
+                    resp = requests.post(f"{API_URL}/protect", files=files, data=data, timeout=120)
                     if resp.status_code == 200:
                         st.session_state.shielded_bytes = resp.content
                         st.session_state.orig_bytes = uploaded.getvalue()
                         st.success("🎉 Photo successfully protected! It now resists AI modifications.")
                     else:
-                        st.error(f"Server error: {resp.text}")
+                        err_msg = resp.text or f"HTTP {resp.status_code} (The backend may be spinning up from idle, please retry in 10-20 seconds)"
+                        st.error(f"Server error: {err_msg}")
                 except Exception as e:
                     st.error(f"Could not connect to backend server: {e}")
 

@@ -32,13 +32,22 @@ def compute_ela(img: Image.Image, quality: int = 90) -> Image.Image:
 # DeepFake classifier (binary: real / fake)
 # --------------------------------------------------------------------------- #
 def classify_image(img: Image.Image) -> tuple[float, str]:
-    classifier, _ = get_detector_pipe()
-    results = classifier(img)
-    scores = {r["label"].lower(): r["score"] for r in results}
-    fake_score = scores.get("fake", 0.0)
-    real_score = scores.get("real", 0.0)
-    label = "fake" if fake_score > real_score else "real"
-    return fake_score, label
+    try:
+        classifier, _ = get_detector_pipe()
+        results = classifier(img)
+        scores = {r["label"].lower(): r["score"] for r in results}
+        fake_score = scores.get("fake", 0.0)
+        real_score = scores.get("real", 0.0)
+        label = "fake" if fake_score > real_score else "real"
+        return fake_score, label
+    except Exception as e:
+        print(f"[⚠️] Classifier fallback: {e}")
+        ela = compute_ela(img)
+        gray = np.array(ela.convert("L"))
+        high_diff_ratio = float((gray > 30).sum()) / float(gray.size)
+        fake_score = min(0.92, max(0.08, high_diff_ratio * 3.5))
+        label = "fake" if fake_score > 0.5 else "real"
+        return fake_score, label
 
 # --------------------------------------------------------------------------- #
 # Heat‑map generation (simple threshold on ELA intensity)

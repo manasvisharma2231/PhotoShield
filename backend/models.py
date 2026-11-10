@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Tuple
 
 import torch
-from diffusers import StableDiffusionInpaintPipeline
+from diffusers import AutoencoderKL, StableDiffusionInpaintPipeline
 from transformers import pipeline, AutoFeatureExtractor, AutoModelForImageClassification
 
 # --------------------------------------------------------------------------- #
@@ -30,22 +30,50 @@ def get_device() -> torch.device:
 DEVICE = get_device()
 
 # --------------------------------------------------------------------------- #
-# Stable Diffusion Inpainting pipeline (VAE encoder is needed for the shield).
+# Lightweight VAE Loader (~330 MB instead of full 5GB pipeline)
 # --------------------------------------------------------------------------- #
 @lru_cache(maxsize=1)
-def get_sd_inpaint_pipe() -> StableDiffusionInpaintPipeline:
+def get_vae():
     """
-    Load the Stable Diffusion Inpainting pipeline with cached VAE weights.
-    The pipeline is set to `torch.float16` on GPU for speed.
+    Loads only the AutoencoderKL VAE subfolder to drastically reduce RAM
+    usage from ~5GB down to ~330MB, perfectly fitting within cloud memory limits.
     """
-    model_id = "runwayml/stable-diffusion-inpainting"
-    pipe = StableDiffusionInpaintPipeline.from_pretrained(
-        model_id,
-        torch_dtype=torch.float16 if DEVICE.type == "cuda" else torch.float32,
-    )
-    pipe = pipe.to(DEVICE)
-    pipe.enable_attention_slicing()  # saves memory
-    return pipe
+    try:
+        model_id = "runwayml/stable-diffusion-inpainting"
+        vae = AutoencoderKL.from_pretrained(
+            model_id,
+            subfolder="vae",
+            torch_dtype=torch.float16 if DEVICE.type == "cuda" else torch.float32,
+        )
+        vae = vae.to(DEVICE)
+        vae.eval()
+        for p in vae.parameters():
+            p.requires_grad = False
+        return vae
+    except Exception as e:
+        print(f"[⚠️] Could not load VAE from HuggingFace: {e}")
+        return None
+
+# --------------------------------------------------------------------------- #
+# Full Stable Diffusion Inpainting pipeline (optional, for live inpainting)
+# --------------------------------------------------------------------------- #
+@lru_cache(maxsize=1)
+def get_sd_inpaint_pipe():
+    """
+    Load the Stable Diffusion Inpainting pipeline if requested for live inpainting.
+    """
+    try:
+        model_id = "runwayml/stable-diffusion-inpainting"
+        pipe = StableDiffusionInpaintPipeline.from_pretrained(
+            model_id,
+            torch_dtype=torch.float16 if DEVICE.type == "cuda" else torch.float32,
+        )
+        pipe = pipe.to(DEVICE)
+        pipe.enable_attention_slicing()
+        return pipe
+    except Exception as e:
+        print(f"[⚠️] Could not load full diffusion pipeline: {e}")
+        return None
 
 # --------------------------------------------------------------------------- #
 # Deepfake / AI‑edit detector – HuggingFace image‑classification pipeline.
