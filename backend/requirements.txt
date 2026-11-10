@@ -1,0 +1,17 @@
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+diffusers==0.38.0
+transformers>=4.49.0
+torch==2.3.0
+torchvision==0.18.0
+pillow==10.4.0
+numpy==1.26.4
+scikit-image==0.24.0
+reportlab==4.2.2
+streamlit==1.38.0
+requests==2.32.3
+python-multipart==0.0.9
+accelerate>=0.30.0
+tqdm==4.66.5
+huggingface_hub>=0.23,<1.0
+packaging<25,>=20
