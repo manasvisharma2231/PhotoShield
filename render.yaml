@@ -1,0 +1,41 @@
+# render.yaml - Render Blueprint for PhotoShield
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Service (FastAPI)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: photoshield-backend
+    env: python
+    plan: starter # Starter (2GB) or higher recommended due to PyTorch/Diffusers models
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
+      - key: WEB_CONCURRENCY
+        value: "1"
+
+  # ---------------------------------------------------------------------------
+  # 2. Frontend Service (Streamlit)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: photoshield-frontend
+    env: python
+    plan: free # Free tier is sufficient for Streamlit UI
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
+      - key: API_URL
+        fromService:
+          name: photoshield-backend
+          type: web
+          property: host
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
+      - key: STREAMLIT_SERVER_ENABLE_CORS
+        value: "false"
+      - key: STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION
+        value: "false"
+

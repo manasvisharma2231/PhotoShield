@@ -8,11 +8,12 @@ import json
 import zipfile
 from pathlib import Path
 
+import os
 import requests
 import streamlit as st
 from PIL import Image
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", os.getenv("BACKEND_URL", "http://localhost:8000")).rstrip("/")
 
 st.set_page_config(
     page_title="PhotoShield - AI Defense for Photos",

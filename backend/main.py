@@ -16,6 +16,7 @@ import base64
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from backend.shield import protect_image, robust_protect, inpaint_image, apply_ai_attack
@@ -24,6 +25,14 @@ from backend.robustness import robustness_report
 from backend.report import generate_report
 
 app = FastAPI(title="Photo Shield API", version="0.1")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------------------------------------------------------
 # Helper – read raw bytes from an UploadFile
