@@ -12,17 +12,32 @@ Endpoints:
 """
 
 import io
+import sys
 import base64
+from pathlib import Path
 from typing import Optional
+
+# Ensure both current directory and project root are on sys.path
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+for p in (str(PROJECT_ROOT), str(BASE_DIR)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
-from backend.shield import protect_image, robust_protect, inpaint_image, apply_ai_attack
-from backend.detector import detect_edit
-from backend.robustness import robustness_report
-from backend.report import generate_report
+try:
+    from backend.shield import protect_image, robust_protect, inpaint_image, apply_ai_attack
+    from backend.detector import detect_edit
+    from backend.robustness import robustness_report
+    from backend.report import generate_report
+except (ImportError, ModuleNotFoundError):
+    from shield import protect_image, robust_protect, inpaint_image, apply_ai_attack
+    from detector import detect_edit
+    from robustness import robustness_report
+    from report import generate_report
 
 app = FastAPI(title="Photo Shield API", version="0.1")
 
